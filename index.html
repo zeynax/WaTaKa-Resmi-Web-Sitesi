@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WaTaKa | Minecraft Sunucusu</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M32 4 56 18v28L32 60 8 46V18z' fill='%23a56bff'/><path d='M18 22l6 22 8-14 8 14 6-22' fill='none' stroke='%238ee6ff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#07051a;--purple:#a56bff;--ice:#8ee6ff;--ok:#7dffb3;--bad:#ff6b8b;--text:#eceaff;--muted:#a09cc8;--glass:rgba(20,12,52,.62);--line:rgba(180,160,255,.25)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:"Sora",system-ui,sans-serif;min-height:100vh;display:flex;flex-direction:column;overflow-x:hidden}
+
+.bg{position:fixed;inset:0;z-index:-1;overflow:hidden;background:radial-gradient(ellipse at 50% 100%,#3b1a6e 0,#140c34 45%,#07051a 100%)}
+.sun{position:absolute;left:50%;bottom:30%;width:min(52vw,360px);aspect-ratio:1;transform:translateX(-50%);border-radius:50%;background:linear-gradient(#8ee6ff,#a56bff 55%,#ff6bd6);box-shadow:0 0 90px 24px rgba(165,107,255,.4);animation:breathe 6s ease-in-out infinite alternate}
+@keyframes breathe{to{box-shadow:0 0 130px 40px rgba(142,230,255,.35)}}
+.grid{position:absolute;left:-60%;right:-60%;bottom:0;height:34%;background:linear-gradient(rgba(142,230,255,.45) 1px,transparent 1px) 0 0/100% 46px,linear-gradient(90deg,rgba(165,107,255,.5) 1px,transparent 1px) 0 0/64px 100%,#0a0620;transform:perspective(260px) rotateX(58deg);transform-origin:50% 0;animation:move 2.4s linear infinite;-webkit-mask-image:linear-gradient(transparent,#000 55%);mask-image:linear-gradient(transparent,#000 55%)}
+@keyframes move{to{background-position:0 46px,0 0,0 0}}
+.star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:tw 3s ease-in-out infinite}
+@keyframes tw{50%{opacity:.1}}
+
+.grad{background:linear-gradient(90deg,var(--purple),var(--ice),var(--purple));background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shine 5s linear infinite}
+@keyframes shine{to{background-position:200% center}}
+
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:10px 16px;background:rgba(7,5,26,.75);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:1.2rem;cursor:pointer;background:none;border:0;color:inherit;font-family:inherit;padding:0}
+.brand svg{width:36px;height:36px}
+nav{display:flex;gap:6px;margin-left:auto;overflow-x:auto}
+nav button,.authbtn{font:inherit;font-weight:600;font-size:.9rem;color:var(--text);background:transparent;border:1px solid transparent;padding:8px 14px;border-radius:12px;cursor:pointer;white-space:nowrap}
+nav button:hover{background:rgba(255,255,255,.08)}
+nav button.cur{border-color:var(--line);background:rgba(165,107,255,.2)}
+.authbtn{background:linear-gradient(90deg,var(--purple),var(--ice));color:#0b0820;font-weight:800}
+@media(max-width:640px){nav{order:3;width:100%;margin:0}.authbtn{margin-left:auto}}
+
+main{width:100%;max-width:820px;margin:0 auto;padding:20px 16px 40px;flex:1}
+.page{display:none}
+.page.active{display:grid;gap:16px;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(8px)}}
+
+.hero{text-align:center;padding:36px 0 12px}
+.hero svg{width:96px;height:96px;filter:drop-shadow(0 0 22px rgba(165,107,255,.7))}
+h1{font-size:clamp(2.6rem,12vw,4.6rem);font-weight:800;margin:8px 0;letter-spacing:-.02em}
+.type{min-height:1.6em;font-weight:600;font-size:clamp(1rem,3.6vw,1.25rem)}
+.type::after{content:"";display:inline-block;width:2px;height:1.1em;background:var(--ice);margin-left:4px;vertical-align:-.15em;animation:caret 1s steps(2) infinite}
+@keyframes caret{50%{opacity:0}}
+
+.card{background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:22px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.card h2{margin:0 0 14px;font-size:1.1rem;font-weight:800}
+.muted{color:var(--muted);font-size:.92rem;line-height:1.6}
+.row{display:flex;gap:12px;flex-wrap:wrap;margin-top:16px}
+.btn{flex:1;min-width:130px;text-align:center;text-decoration:none;cursor:pointer;font:inherit;font-weight:800;color:#0b0820;padding:12px 16px;border:0;border-radius:14px;background:linear-gradient(90deg,var(--purple),var(--ice));transition:transform .15s,filter .15s}
+.btn:hover{filter:brightness(1.1);transform:translateY(-2px)}
+.btn.ghost{background:transparent;color:var(--text);border:1px solid var(--line)}
+.btn.danger{background:transparent;color:var(--bad);border:1px solid rgba(255,107,139,.4)}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:2px solid var(--ice);outline-offset:3px}
+
+.srv{display:flex;gap:14px;align-items:center}
+.icon{width:60px;height:60px;border-radius:14px;background:rgba(255,255,255,.08);flex:none;display:grid;place-items:center;overflow:hidden}
+.icon svg{width:38px;height:38px}.icon img{width:100%;height:100%;image-rendering:pixelated}
+.ip{font-weight:800;overflow-wrap:anywhere}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:99px;font-weight:800;font-size:.85rem;border:1px solid var(--line);margin-top:16px;background:rgba(0,0,0,.3)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.on{color:var(--ok)}.on .dot{background:var(--ok);animation:pulse 1.8s infinite}
+.off{color:var(--bad)}.off .dot{background:var(--bad)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--ok)}70%,100%{box-shadow:0 0 0 10px transparent}}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+.stat{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:14px;padding:12px}
+.stat small{display:block;color:var(--muted);font-size:.72rem;margin-bottom:4px}
+.stat b{font-size:1.05rem;font-weight:800}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:6px 12px;border-radius:99px;background:rgba(165,107,255,.18);border:1px solid var(--line);font-size:.85rem;font-weight:600}
+.ann{padding:12px 0;border-top:1px solid var(--line)}.ann:first-of-type{border-top:0;padding-top:0}
+.ann b{display:block;margin-bottom:2px}
+
+details{border-top:1px solid var(--line);padding:12px 0}
+details:first-of-type{border-top:0}
+summary{cursor:pointer;font-weight:600;list-style:none}
+summary::before{content:"+";display:inline-block;width:1.4em;color:var(--ice);font-weight:800}
+details[open] summary::before{content:"–"}
+details p{margin:8px 0 0 1.4em}
+
+.wallet{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.coin{font-weight:800;font-size:1.2rem}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.item{display:flex;flex-direction:column;gap:6px}
+.item .em{font-size:2.2rem}
+.item h3{margin:0;font-size:1rem}
+.item .muted{flex:1}
+.price{font-weight:800;color:var(--ice)}
+
+.prof{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.avatar{width:88px;height:88px;border-radius:20px;border:2px solid var(--purple);image-rendering:pixelated;background:rgba(255,255,255,.08);display:grid;place-items:center;font-size:2rem;font-weight:800;overflow:hidden}
+.avatar img{width:100%;height:100%}
+.pn{font-size:1.5rem;font-weight:800;margin:0 0 6px}
+.bar{height:10px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--purple),var(--ice))}
+textarea,input{width:100%;font:inherit;color:var(--text);background:rgba(0,0,0,.35);border:1px solid var(--line);border-radius:12px;padding:12px}
+textarea{resize:vertical;min-height:80px}
+label{display:grid;gap:6px;font-weight:600;font-size:.88rem;margin-bottom:12px}
+.inv{margin:0;padding-left:1.2em;line-height:1.9}
+
+dialog{background:#150e35;color:var(--text);border:1px solid var(--line);border-radius:22px;padding:24px;width:min(92vw,380px)}
+dialog::backdrop{background:rgba(3,2,15,.75);backdrop-filter:blur(4px)}
+.tabs{display:flex;gap:6px;margin-bottom:16px}
+.tabs button{flex:1;font:inherit;font-weight:800;color:var(--muted);background:transparent;border:1px solid var(--line);padding:10px;border-radius:12px;cursor:pointer}
+.tabs button.cur{color:var(--text);background:rgba(165,107,255,.25)}
+.err{color:var(--bad);font-size:.85rem;min-height:1.2em;margin:0 0 10px}
+
+footer{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:18px 24px;border-top:1px solid var(--line);background:rgba(7,5,26,.7);font-size:.9rem}
+.ver{padding:6px 14px;border-radius:99px;border:1px solid var(--line);font-weight:800;background:rgba(255,255,255,.05)}
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,30px);opacity:0;background:#1a1638;border:1px solid var(--ice);padding:10px 18px;border-radius:12px;font-weight:600;transition:.3s;pointer-events:none;z-index:50;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:520px){footer{justify-content:center;text-align:center}.stats{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a56bff"/><stop offset="1" stop-color="#8ee6ff"/></linearGradient></defs>
+<symbol id="logo" viewBox="0 0 64 64"><path d="M32 4 56 18v28L32 60 8 46V18z" fill="#140c34" stroke="url(#lg)" stroke-width="3"/><path d="M18 22l6 22 8-14 8 14 6-22" fill="none" stroke="url(#lg)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></symbol></svg>
+
+<div class="bg"><div class="sun"></div><div class="grid"></div><div id="stars"></div></div>
+
+<header class="top">
+  <button class="brand" data-go="home"><svg><use href="#logo"/></svg><span class="grad">WaTaKa</span></button>
+  <nav>
+    <button data-go="home" class="cur">Ana Sayfa</button>
+    <button data-go="rules">Kurallar</button>
+    <button data-go="market">Market</button>
+    <button data-go="tickets">Destek</button>
+    <button data-go="admin" id="adminNavBtn" hidden style="border-color:var(--ice); color:var(--ice);">Admin Paneli</button>
+    <button data-go="profile">Profil</button>
+  </nav>
+  <button class="authbtn" id="authBtn">Giriş / Kayıt</button>
+</header>
+
+<main>
+  <!-- ANA SAYFA -->
+  <section id="home" class="page active">
+    <div class="hero">
+      <svg><use href="#logo"/></svg>
+      <h1 class="grad">WaTaKa</h1>
+      <div class="type" id="type"></div>
+      <div class="row" style="justify-content:center">
+        <button class="btn" id="copy" style="max-width:220px">IP'yi kopyala</button>
+        <button class="btn ghost" data-go="market" style="max-width:220px">Markete git</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="srv">
+        <div class="icon" id="icon"><svg><use href="#logo"/></svg></div>
+        <div><div class="ip" id="ipText"></div><div class="muted" id="motd">Kontrol ediliyor…</div></div>
+      </div>
+      <div class="badge" id="badge"><span class="dot"></span><span id="badgeText">Kontrol ediliyor…</span></div>
+      <div class="stats">
+        <div class="stat"><small>Oyuncular</small><b id="pl">–</b></div>
+        <div class="stat"><small>Sürüm</small><b id="ver">–</b></div>
+        <div class="stat"><small>Kayıtlı üye</small><b id="regCount">0</b></div>
+      </div>
+      <div class="row">
+        <button class="btn ghost" id="refresh">Şimdi yenile</button>
+        <a class="btn ghost" id="discord" href="#">Discord</a>
+      </div>
+    </div>
+
+    <div class="card"><h2 class="grad">Çevrimiçi oyuncular</h2><div class="chips" id="list"><p class="muted">Yükleniyor…</p></div></div>
+    <div class="card"><h2 class="grad">Duyurular</h2><div id="ann"></div></div>
+    <div class="card">
+      <h2 class="grad">Nasıl bağlanırım?</h2>
+      <details open><summary>Java Edition</summary><p class="muted">Çok Oyunculu → Sunucu Ekle → adrese <b id="ipText2"></b> yaz → Kaydet ve gir.</p></details>
+      <details><summary>Sürüm hatası alıyorum</summary><p class="muted">Launcher'da 1.21.11 sürümüyle yeni bir profil oluştur.</p></details>
+      <details><summary>Sunucu kapalı görünüyor</summary><p class="muted">Tünel bağlantısı kopmuş olabilir. Birkaç dakika sonra "Şimdi yenile"ye bas.</p></details>
+    </div>
+  </section>
+
+  <!-- KURALLAR -->
+  <section id="rules" class="page">
+    <div class="card">
+      <h2 class="grad">Sunucu kuralları</h2>
+      <details open><summary>Saygılı ol</summary><p class="muted">Küfür, hakaret, zorbalık ve ayrımcılık yasaktır.</p></details>
+      <details><summary>Hile ve exploit yasak</summary><p class="muted">Hile modları, x-ray ve oyun hatalarını kötüye kullanmak yasaktır.</p></details>
+      <details><summary>Grief ve hırsızlık yasak</summary><p class="muted">Başkasının yapısına zarar vermek veya eşyasını almak yasaktır.</p></details>
+      <details><summary>Reklam yasak</summary><p class="muted">Başka sunucu, sayfa veya ürün reklamı yapmayın.</p></details>
+      <details><summary>Spam yapma</summary><p class="muted">Sohbeti tekrar eden mesajlarla doldurma.</p></details>
+      <details><summary>Yetkililere uy</summary><p class="muted">Yetkililerin kararlarına saygı göster, itirazını Discord'dan ilet.</p></details>
+    </div>
+  </section>
+
+  <!-- MARKET -->
+  <section id="market" class="page">
+    <div class="card wallet">
+      <div><h2 class="grad" style="margin:0 0 4px">Market</h2><span class="muted" id="mHint"></span></div>
+      <div class="coin" id="mCoin"></div>
+    </div>
+    <div class="shop" id="shop"></div>
+  </section>
+
+  <!-- OYUNCU DESTEK / TİCKET SAYFASI -->
+  <section id="tickets" class="page">
+    <div class="card">
+      <h2 class="grad">Destek Talebi Oluştur</h2>
+      <form id="ticketForm">
+        <label>Konu Başlığı<input id="tSubject" placeholder="Örn: Market eşyası yüklenmedi" required></label>
+        <label>Sorununuz / Mesajınız<textarea id="tMsg" placeholder="Sorunu detaylıca açıklayın..." required></textarea></label>
+        <button class="btn" type="submit">Talebi Gönder</button>
+      </form>
+    </div>
+    <div class="card">
+      <h2 class="grad">Geçmiş Taleplerim</h2>
+      <div id="myTickets" style="display:grid; gap:12px;"></div>
+    </div>
+  </section>
+
+  <!-- YETKİLİ / ADMİN TİCKET PANELİ -->
+  <section id="admin" class="page">
+    <div class="card">
+      <h2 class="grad">Gelen Destek Talepleri (Admin Paneli)</h2>
+      <div id="adminTickets" style="display:grid; gap:12px;"></div>
+    </div>
+  </section>
+
+  <!-- PROFİL -->
+  <section id="profile" class="page"><div id="profileBox"></div></section>
+</main>
+
+<footer>
+  <span class="ver">Sürüm <span id="fver"></span></span>
+  <span class="grad" style="font-weight:800">WaTaKa ile keyifli oyunlar</span>
+</footer>
+
+<!-- GİRİŞ / KAYIT -->
+<dialog id="auth">
+  <div class="tabs"><button id="tabL" class="cur" type="button">Giriş yap</button><button id="tabR" type="button">Kayıt ol</button></div>
+  <form id="authForm" autocomplete="off">
+    <label>Minecraft kullanıcı adı<input id="nick" maxlength="16" placeholder="Steve" required></label>
+    <label>Şifre<input id="pw" type="password" placeholder="En az 6 karakter" required></label>
+    <label id="pw2Wrap" hidden>Şifre tekrar<input id="pw2" type="password"></label>
+    <p class="err" id="authErr"></p>
+    <div class="row" style="margin-top:0"><button class="btn" id="authGo" type="submit">Giriş yap</button><button class="btn ghost" type="button" id="authClose">Vazgeç</button></div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ====== AYARLAR ====== */
+const CFG = { 
+  name: "WaTaKa", 
+  ip: "reminded-awarness.tun.ply.gg", 
+  version: "1.21.11", 
+  discord: "#",
+  // YENİ ADMİN BİLGİLERİN
+  adminNick: "comebackomer", 
+  adminPw: "denkyok22" 
+};
+
+const ANN = [
+  { t: "Sunucu açıldı!", d: "WaTaKa artık aktif, gel ve oynamaya başla." },
+  { t: "Kayıtlar başladı", d: "Kayıt ol, 100 coin hediyeni al ve marketi dene." }
+];
+const ITEMS = [
+  { id:"kit1",  em:"🎒", name:"Başlangıç Kiti", desc:"Demir set ve temel eşyalar.", price:200 },
+  { id:"kit2",  em:"💎", name:"Elmas Kit",      desc:"Tam elmas set ve alet.",      price:600 },
+  { id:"tag",   em:"🏷️", name:"Özel Tag",       desc:"İsmin yanında özel etiket.",  price:400 },
+  { id:"fly",   em:"🪽", name:"Uçuş (7 gün)",   desc:"Bir hafta boyunca uçuş yeteneği.", price:800 },
+  { id:"crate", em:"🎁", name:"Gizemli Sandık", desc:"Rastgele ödüllü sandık.",     price:300 },
+  { id:"vip",   em:"👑", name:"VIP Rütbe",      desc:"Özel rütbe ve ayrıcalıklar.", price:1500 }
+];
+
+/* ====== YARDIMCILAR ====== */
+const $= s => document.querySelector(s),$$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store = {
+  get(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+
+const users = () => store.get("wtk_users", {});
+const tickets = () => store.get("wtk_tickets", []);
+const me = () => users()[store.get("wtk_session", "")];
+
+function save(u){ const all = users(); all[u.nick.toLowerCase()] = u; store.set("wtk_users", all); }
+function saveTickets(tList){ store.set("wtk_tickets", tList); }
+
+async function sha(s){
+  try{ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("wtk:" + s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2,"0")).join(""); }
+  catch(e){ return btoa("wtk:" + s); }
+}
+
+function toast(m){ const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), 2200); }
+
+/* ADMIN SİSTEMİ KONTROLÜ */
+async function checkAdminStatus(){
+  const u = me();
+  if(!u) return false;
+  const adminHash = await sha(CFG.adminPw);
+  return u.nick.toLowerCase() === CFG.adminNick.toLowerCase() && u.hash === adminHash;
+}
+
+/* ====== GENEL METİNLER ====== */
+document.title = CFG.name + " | Minecraft Sunucusu";
+$("#ipText").textContent = CFG.ip; $("#ipText2").textContent = CFG.ip; $("#fver").textContent = CFG.version;
+$("#discord").href = CFG.discord;
+$("#ann").innerHTML = ANN.map(a => `<div class="ann"><b>${esc(a.t)}</b><span class="muted">${esc(a.d)}</span></div>`).join("");
+
+for(let i = 0; i < 70; i++){
+  const s = document.createElement("div"); s.className = "star";
+  s.style.cssText = `left:${Math.random()*100}%;top:${Math.random()*65}%;animation-delay:${Math.random()*3}s;opacity:${.3+Math.random()*.7}`;
+  $("#stars").appendChild(s);
+}
+
+const phrases = ["Sunucumuza hoş geldin!", "Sürüm " + CFG.version, "Kayıt ol, profilini oluştur.", "Marketten kit ve rütbe al."];
+let pi = 0, ci = 0, del = false;
+(function typer(){
+  const t = phrases[pi];
+  $("#type").innerHTML = '<span class="grad">' + esc(t.slice(0, ci)) + "</span>";
+  if(!del && ci < t.length){ ci++; setTimeout(typer, 70); }
+  else if(!del){ del = true; setTimeout(typer, 1600); }
+  else if(ci > 0){ ci--; setTimeout(typer, 30); }
+  else { del = false; pi = (pi + 1) % phrases.length; setTimeout(typer, 300); }
+})();
+
+/* ====== SAYFA GEÇİŞİ ====== */
+function go(p){
+  $$(".page").forEach(s => s.classList.toggle("active", s.id === p));   $$
+("nav [data-go]").forEach(b => b.classList.toggle("cur", b.dataset.go === p));
+  if(p === "profile") renderProfile();
+  if(p === "market") renderMarket();
+  if(p === "tickets" || p === "admin") renderTickets();
+  scrollTo({ top:0 });
+}
+
+/* ====== GİRİŞ / KAYIT ====== */
+let mode = "login";
+function setMode(m){
+  mode = m;
+  $("#tabL").classList.toggle("cur", m === "login"); $("#tabR").classList.toggle("cur", m === "reg");
+  $("#pw2Wrap").hidden = m === "login";
+  $("#authGo").textContent = m === "login" ? "Giriş yap" : "Kayıt ol";
+  $("#authErr").textContent = "";
+}
+function openAuth(m){ setMode(m || "login"); $("#authForm").reset(); $("#auth").showModal(); }
+$("#tabL").onclick = () => setMode("login"); $("#tabR").onclick = () => setMode("reg");
+$("#authClose").onclick = () => $("#auth").close();
+
+$("#authForm").addEventListener("submit", async e => {
+  e.preventDefault();
+  const err = t => $("#authErr").textContent = t;
+  const nick = $("#nick").value.trim(), pw = $("#pw").value, key = nick.toLowerCase(), all = users();
+  if(!/^\w{3,16}$/.test(nick)) return err("Kullanıcı adı 3-16 karakter olmalı (harf, rakam, _).");
+  if(pw.length < 6) return err("Şifre en az 6 karakter olmalı.");
+  const h = await sha(pw);
+  if(mode === "reg"){
+    if(pw !== $("#pw2").value) return err("Şifreler aynı değil.");
+    if(all[key]) return err("Bu kullanıcı adı alınmış.");
+    all[key] = { nick, hash:h, joined:Date.now(), coins:100, xp:0, bio:"", inv:[], daily:0 };
+    store.set("wtk_users", all);
+    toast("Kayıt tamamlandı! 100 coin hediye 🎉");
+  } else {
+    if(!all[key] || all[key].hash !== h) return err("Kullanıcı adı veya şifre yanlış.");
+    toast("Tekrar hoş geldin " + all[key].nick + "!");
+  }
+  store.set("wtk_session", key);
+  $("#auth").close(); refreshAuth(); go("profile");
+});
+
+async function refreshAuth(){
+  const u = me();
+  $("#authBtn").textContent = u ? u.nick + " · " + u.coins + " 🪙" : "Giriş / Kayıt";
+  $("#regCount").textContent = Object.keys(users()).length;
+  
+  // Şifre ve Kullanıcı Adı Tutuyorsa Admin Butonunu Göster
+  const isAdmin = await checkAdminStatus();
+  $("#adminNavBtn").hidden = !isAdmin;
+}
+$("#authBtn").onclick = () => me() ? go("profile") : openAuth("login");
+
+/* ====== TİCKET SİSTEMİ MANTIĞI ====== */
+$("#ticketForm").addEventListener("submit", e => {
+  e.preventDefault();
+  const u = me();
+  if(!u) return openAuth("login");
+
+  const list = tickets();
+  const newTicket = {
+    id: "T-" + Date.now(),
+    user: u.nick,
+    subject: $("#tSubject").value.trim(),
+    msg: $("#tMsg").value.trim(),
+    reply: "",
+    status: "Açık",
+    date: Date.now()
+  };
+
+  list.push(newTicket);
+  saveTickets(list);
+  $("#ticketForm").reset();
+  toast("Destek talebin oluşturuldu!");
+  renderTickets();
+});
+
+async function renderTickets(){
+  const u = me();
+  const isAdmin = await checkAdminStatus();
+
+  // Oyuncunun Kendi Biletleri
+  const myT = tickets().filter(t => u && t.user.toLowerCase() === u.nick.toLowerCase());
+  const myBox = $("#myTickets");
+  if(myBox){
+    myBox.innerHTML = myT.length ? myT.map(t => `
+      <div class="card" style="border-color:${t.status === 'Açık' ? 'var(--ice)' : 'var(--ok)'}">
+        <b>[${t.status}] ${esc(t.subject)}</b>
+        <p class="muted" style="margin:6px 0;">${esc(t.msg)}</p>
+        ${t.reply ? `<div style="background:rgba(255,255,255,0.06); padding:10px; border-radius:10px; margin-top:8px; border-left:3px solid var(--ok);"><b>Kurucu / Admin Yanıtı:</b><br>${esc(t.reply)}</div>` : '<i class="muted" style="font-size:0.85rem">Yanıt bekleniyor...</i>'}
+      </div>
+    `).join("") : '<p class="muted">Henüz bir destek talebi açmadınız.</p>';
+  }
+
+  // Admin Paneli (Gelen Talepler)
+  if(isAdmin){
+    const allT = tickets();
+    const adminBox = $("#adminTickets");
+    if(adminBox){
+      adminBox.innerHTML = allT.length ? allT.map(t => `
+        <div class="card">
+          <small class="muted">Oyuncu: <b>${esc(t.user)}</b> | Tarih: ${new Date(t.date).toLocaleString("tr-TR")}</small>
+          <h3 style="margin:6px 0;">${esc(t.subject)}</h3>
+          <p class="muted">${esc(t.msg)}</p>
+          <div style="margin-top:12px;">
+            <textarea id="reply_${t.id}" placeholder="Yanıtınızı yazın...">${esc(t.reply)}</textarea>
+            <button class="btn" style="margin-top:8px;" onclick="replyTicket('${t.id}')">Yanıtla & Kapat</button>
+          </div>
+        </div>
+      `).join("") : '<p class="muted">Sistemde gelen destek talebi yok.</p>';
+    }
+  }
+}
+
+window.replyTicket = function(id){
+  const replyMsg = document.getElementById("reply_" + id).value.trim();
+  if(!replyMsg) return toast("Lütfen bir yanıt girin.");
+
+  const list = tickets();
+  const t = list.find(item => item.id === id);
+  if(t){
+    t.reply = replyMsg;
+    t.status = "Cevaplandı";
+    saveTickets(list);
+    toast("Yanıt yollandı!");
+    renderTickets();
+  }
+};
+
+/* ====== PROFİL ====== */
+function renderProfile(){
+  const u = me(), box = $("#profileBox");
+  if(!u){
+    box.innerHTML = `<div class="card"><h2 class="grad">Profil</h2><p class="muted">Profilini görmek için giriş yap ya da kayıt ol.</p>
+    <div class="row"><button class="btn" data-auth="login">Giriş yap</button><button class="btn ghost" data-auth="reg">Kayıt ol</button></div></div>`;
+    return;
+  }
+  const lv = Math.floor(u.xp / 100) + 1, pct = u.xp % 100;
+  const wait = 864e5 - (Date.now() - u.daily), can = wait <= 0;
+  const badges = ["Oyuncu"]; if(lv >= 3) badges.push("Deneyimli"); if(u.inv.some(i => i.id === "vip")) badges.push("VIP");
+  box.style.display = "grid"; box.style.gap = "16px";
+  box.innerHTML = `
+  <div class="card"><div class="prof">
+    <div class="avatar"><img src="https://minotar.net/helm/${encodeURIComponent(u.nick)}/96" alt="" onerror="this.replaceWith(document.createTextNode('${esc(u.nick[0].toUpperCase())}'))"></div>
+    <div style="flex:1;min-width:200px">
+      <p class="pn grad">${esc(u.nick)}</p>
+      <div class="chips">${badges.map(b => `<span class="chip">${b}</span>`).join("")}</div>
+      <div class="muted" style="margin-top:10px">Seviye ${lv} · ${pct}/100 XP</div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+    </div></div>
+    <div class="stats">
+      <div class="stat"><small>Coin</small><b>${u.coins} 🪙</b></div>
+      <div class="stat"><small>Eşya</small><b>${u.inv.length}</b></div>
+      <div class="stat"><small>Katılım</small><b>${new Date(u.joined).toLocaleDateString("tr-TR")}</b></div>
+    </div>
+    <div class="row"><button class="btn" data-act="daily" ${can ? "" : "disabled"}>${can ? "Günlük ödülü al (+50 🪙)" : "Ödül " + Math.ceil(wait / 36e5) + " saat sonra"}</button>
+    <button class="btn ghost" data-go="market">Markete git</button></div>
+  </div>
+  <div class="card"><h2 class="grad">Hakkında</h2>
+    <label><textarea id="bio" maxlength="160" placeholder="Kendinden bahset…">${esc(u.bio)}</textarea></label>
+    <button class="btn" data-act="bio" style="max-width:200px">Kaydet</button></div>
+  <div class="card"><h2 class="grad">Envanter</h2>
+    ${u.inv.length ? `<ul class="inv muted">${u.inv.map(i => `<li>${esc(i.name)} <small>(${new Date(i.date).toLocaleDateString("tr-TR")})</small></li>`).join("")}</ul>
+    <p class="muted">Aldığın ürünleri sunucuda teslim almak için Discord'dan yetkiliye ulaş.</p>` : `<p class="muted">Henüz bir şey almadın.</p>`}</div>
+  <div class="row" style="margin:0"><button class="btn ghost" data-act="logout">Çıkış yap</button><button class="btn danger" data-act="delete">Hesabı sil</button></div>`;
+}
+
+/* ====== MARKET ====== */
+function renderMarket(){
+  const u = me();
+  $("#mCoin").textContent = u ? u.coins + " 🪙" : "";
+  $("#mHint").textContent = u ? "Coinlerinle ürün satın al." : "Satın almak için giriş yapmalısın.";
+  $("#shop").innerHTML = ITEMS.map(i => `<div class="card item"><div class="em">${i.em}</div><h3>${esc(i.name)}</h3><div class="muted">${esc(i.desc)}</div>
+    <div class="price">${i.price} 🪙</div><button class="btn" data-buy="${i.id}">Satın al</button></div>`).join("");
+}
+function buy(id){
+  const u = me(); if(!u) return openAuth("login");
+  const it = ITEMS.find(i => i.id === id);
+  if(u.coins < it.price) return toast("Yeterli coinin yok.");
+  if(!confirm(it.name + " ürünü " + it.price + " coin. Onaylıyor musun?")) return;
+  u.coins -= it.price; u.xp += 20; u.inv.push({ id:it.id, name:it.name, date:Date.now() });
+  save(u); refreshAuth(); renderMarket(); toast(it.name + " satın alındı!");
+}
+
+/* ====== TIKLAMALAR ====== */
+document.addEventListener("click", e => {
+  const g = e.target.closest("[data-go]"); if(g) return go(g.dataset.go);
+  const a = e.target.closest("[data-auth]"); if(a) return openAuth(a.dataset.auth);
+  const b = e.target.closest("[data-buy]"); if(b) return buy(b.dataset.buy);
+  const c = e.target.closest("[data-act]"); if(!c) return;
+  const u = me(); if(!u) return;
+  const act = c.dataset.act;
+  if(act === "daily"){ u.coins += 50; u.xp += 25; u.daily = Date.now(); save(u); refreshAuth(); renderProfile(); toast("+50 coin kazandın!"); }
+  if(act === "bio"){ u.bio = $("#bio").value.trim(); save(u); toast("Profil kaydedildi."); }
+  if(act === "logout"){ store.set("wtk_session", ""); refreshAuth(); go("home"); toast("Çıkış yapıldı."); }
+  if(act === "delete" && confirm("Hesabın kalıcı olarak silinecek. Emin misin?")){
+    const all = users(); delete all[u.nick.toLowerCase()]; store.set("wtk_users", all); store.set("wtk_session", ""); refreshAuth(); go("home"); toast("Hesap silindi.");
+  }
+});
+$("#copy").onclick = async () => { try{ await navigator.clipboard.writeText(CFG.ip); toast("IP kopyalandı!"); }catch(e){ toast(CFG.ip); } };
+$("#refresh").onclick = () => { toast("Yenileniyor…"); check(); };
+$("#discord").onclick = e => { if(CFG.discord === "#"){ e.preventDefault(); toast("Discord linki henüz eklenmedi"); } };
+
+/* ====== SUNUCU DURUMU ====== */
+async function check(){
+  try{
+    const d = await (await fetch("https://api.mcsrvstat.us/3/" + CFG.ip, { cache:"no-store" })).json();
+    const on = d.online === true;
+    $("#badge").className = "badge " + (on ? "on" : "off");
+    $("#badgeText").textContent = on ? "Aktif" : "Kapalı";
+    $("#motd").textContent = on ? ((d.motd && d.motd.clean && d.motd.clean.join(" ")) || "Sunucu çalışıyor") : "Sunucu şu an kapalı";
+    $("#pl").textContent = on && d.players ? d.players.online + " / " + d.players.max : "–";
+    $("#ver").textContent = on && d.version ? d.version : "–";
+    if(on && d.icon) $("#icon").innerHTML = '<img alt="" src="' + d.icon + '">';
+    const list = $("#list"); list.innerHTML = "";
+    const names = on && d.players && d.players.list ? d.players.list : [];
+    if(names.length) names.forEach(p => { const c = document.createElement("span"); c.className = "chip"; c.textContent = p.name; list.appendChild(c); });
+    else { const p = document.createElement("p"); p.className = "muted"; p.style.margin = 0;
+      p.textContent = !on ? "Sunucu kapalı." : (d.players && d.players.online > 0 ? d.players.online + " oyuncu çevrimiçi." : "Şu an kimse yok. İlk sen ol!"); list.appendChild(p); }
+  }catch(e){
+    $("#badge").className = "badge off"; $("#badgeText").textContent = "Durum alınamadı"; $("#motd").textContent = "Bağlantı hatası, tekrar denenecek";
+  }
+}
+
+refreshAuth(); check(); setInterval(check, 30000);
+</script>
+</body>
+</html>
